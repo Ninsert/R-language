@@ -108,7 +108,6 @@ ggplot(data=mpg, aes(x=displ, y=hwy)) +
   labs(x = 'engine displacement (litres)',
        y = 'highway miles per gallon',
        title = 'hwy vs. displ')
-
 #Adicionando uma "linha de tendência"
 ggplot(data=mpg, aes(x=displ, y=hwy)) +
   geom_point(colour = 'red')+
@@ -179,7 +178,7 @@ ggplot(iris,aes(Sepal.Length,Petal.Length,group=Species,
                 col=Species))+
   geom_point()+
   geom_smooth(method='lm',se=FALSE)+
-  theme_excel_new()
+  theme_cleveland()
 
 #Boxplot
 ggplot(iris,aes(y=Sepal.Length,x=Species))+

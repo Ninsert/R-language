@@ -292,20 +292,18 @@
       document.body.style.height = "100%";
       document.documentElement.style.width = "100%";
       document.documentElement.style.height = "100%";
-      if (cel) {
-        cel.style.position = "absolute";
-        var pad = unpackPadding(sizing.padding);
-        cel.style.top = pad.top + "px";
-        cel.style.right = pad.right + "px";
-        cel.style.bottom = pad.bottom + "px";
-        cel.style.left = pad.left + "px";
-        el.style.width = "100%";
-        el.style.height = "100%";
-      }
+      cel.style.position = "absolute";
+      var pad = unpackPadding(sizing.padding);
+      cel.style.top = pad.top + "px";
+      cel.style.right = pad.right + "px";
+      cel.style.bottom = pad.bottom + "px";
+      cel.style.left = pad.left + "px";
+      el.style.width = "100%";
+      el.style.height = "100%";
 
       return {
-        getWidth: function() { return cel.offsetWidth; },
-        getHeight: function() { return cel.offsetHeight; }
+        getWidth: function() { return cel.getBoundingClientRect().width; },
+        getHeight: function() { return cel.getBoundingClientRect().height; }
       };
 
     } else {
@@ -313,8 +311,8 @@
       el.style.height = px(sizing.height);
 
       return {
-        getWidth: function() { return el.offsetWidth; },
-        getHeight: function() { return el.offsetHeight; }
+        getWidth: function() { return cel.getBoundingClientRect().width; },
+        getHeight: function() { return cel.getBoundingClientRect().height; }
       };
     }
   }
@@ -538,8 +536,8 @@
 
           elementData(el, "initialized", true);
           if (bindingDef.initialize) {
-            var result = bindingDef.initialize(el, el.offsetWidth,
-              el.offsetHeight);
+            var rect = el.getBoundingClientRect();
+            var result = bindingDef.initialize(el, rect.width, rect.height);
             elementData(el, "init_result", result);
           }
         }
@@ -581,29 +579,30 @@
       forEach(matches, function(el) {
         var sizeObj = initSizing(el, binding);
 
+        var getSize = function(el) {
+          if (sizeObj) {
+            return {w: sizeObj.getWidth(), h: sizeObj.getHeight()}
+          } else {
+            var rect = el.getBoundingClientRect();
+            return {w: rect.width, h: rect.height}
+          }
+        };
+
         if (hasClass(el, "html-widget-static-bound"))
           return;
         el.className = el.className + " html-widget-static-bound";
 
         var initResult;
         if (binding.initialize) {
-          initResult = binding.initialize(el,
-            sizeObj ? sizeObj.getWidth() : el.offsetWidth,
-            sizeObj ? sizeObj.getHeight() : el.offsetHeight
-          );
+          var size = getSize(el);
+          initResult = binding.initialize(el, size.w, size.h);
           elementData(el, "init_result", initResult);
         }
 
         if (binding.resize) {
-          var lastSize = {
-            w: sizeObj ? sizeObj.getWidth() : el.offsetWidth,
-            h: sizeObj ? sizeObj.getHeight() : el.offsetHeight
-          };
+          var lastSize = getSize(el);
           var resizeHandler = function(e) {
-            var size = {
-              w: sizeObj ? sizeObj.getWidth() : el.offsetWidth,
-              h: sizeObj ? sizeObj.getHeight() : el.offsetHeight
-            };
+            var size = getSize(el);
             if (size.w === 0 && size.h === 0)
               return;
             if (size.w === lastSize.w && size.h === lastSize.h)
@@ -905,7 +904,6 @@
     return result;
   }
 })();
-
 </script>
 <script>
 HTMLWidgets.widget({
@@ -1430,17 +1428,15 @@ HTMLWidgets.widget({
       // communication between the widget and direct manipulation events
       if (x.selectize) {
         var selectizeID = Object.keys(x.selectize)[i];
-        var options = x.selectize[selectizeID];
+        var items = x.selectize[selectizeID].items;
         var first = [{value: "", label: "(All)"}];
-        var opts = $.extend({
-            options: first.concat(options.items),
-            searchField: "label",
-            valueField: "value",
-            labelField: "label",
-            maxItems: 50
-          }, 
-          options
-        );
+        var opts = {
+          options: first.concat(items),
+          searchField: "label",
+          valueField: "value",
+          labelField: "label",
+          maxItems: 50
+        };
         var select = $("#" + selectizeID).find("select")[0];
         var selectize = $(select).selectize(opts)[0].selectize;
         // NOTE: this callback is triggered when *directly* altering 
@@ -1935,11 +1931,9 @@ e.exports=function(t){return null!=t&&(n(t)||function(t){return"function"==typeo
 </head>
 <body style="background-color: white;">
 <div id="htmlwidget_container">
-<div id="htmlwidget-4244cc37f1c4c9329d2e" class="plotly html-widget" style="width:100%;height:400px;">
-
+  <div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-2df78e77c955685f28aa" style="width:100%;height:400px;"></div>
 </div>
-</div>
-<script type="application/json" data-for="htmlwidget-4244cc37f1c4c9329d2e">{"x":{"visdat":{"41984d2a55cd":["function () ","plotlyVisDat"]},"cur_data":"41984d2a55cd","attrs":{"41984d2a55cd":{"x":{},"y":{},"z":{},"mode":"markers","marker":{"size":5,"color":{},"opacity":0.6},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter3d"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"Área (m^2)"},"yaxis":{"title":"Cond (R$)"},"zaxis":{"title":"Preço (R$)"},"title":"3D Scatter Plot: Área, Cond e Preço por Elevador"},"hovermode":"closest","showlegend":false},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[86,88,74,68,67,58,60,68,50,63,57,60,66,63,45,67,57,57,49,77,51,49,55,55,45,75,48,31,52,51,60,35,78,44,62,31,50,30,48,33,45,47,52,48,53,45,49,30,33,44,56,56,41,52,32,39],"y":[996,530,630,700,508,640,460,530,380,453,450,370,458,803,360,740,370,360,800,486,320,615,450,360,350,550,527,352,505,420,720,345,690,240,399,350,80,300,480,350,250,300,350,280,390,362,190,370,330,170,100,140,150,218,235,103],"z":[800000,580000,545000,480000,460000,460000,460000,424000,380000,380000,379000,372960,368000,360000,351849,350000,349000,340000,340000,338000,332000,330000,327000,322000,295000,280000,280000,280000,280000,276000,270000,259800,250000,235000,230000,228000,225000,220000,220000,219990,219000,218000,215000,210000,200000,195000,190000,190000,185000,178000,170000,170000,165900,165000,160000,129000],"mode":"markers","marker":{"color":["blue","red","blue","blue","blue","red","blue","blue","red","blue","blue","red","blue","blue","blue","blue","blue","blue","blue","red","red","blue","red","red","red","red","blue","blue","blue","blue","blue","blue","blue","blue","blue","red","blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","red","red","blue","blue","blue","red","blue","blue","blue"],"size":5,"opacity":0.6,"line":{"color":"rgba(31,119,180,1)"}},"type":"scatter3d","error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
-<script type="application/htmlwidget-sizing" data-for="htmlwidget-4244cc37f1c4c9329d2e">{"viewer":{"width":"100%","height":400,"padding":0,"fill":true},"browser":{"width":"100%","height":400,"padding":0,"fill":true}}</script>
+<script type="application/json" data-for="htmlwidget-2df78e77c955685f28aa">{"x":{"visdat":{"3ed47e096913":["function () ","plotlyVisDat"]},"cur_data":"3ed47e096913","attrs":{"3ed47e096913":{"x":{},"y":{},"z":{},"mode":"markers","marker":{"size":5,"color":{},"opacity":0.6},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter3d"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"Área (m^2)"},"yaxis":{"title":"Cond (R$)"},"zaxis":{"title":"Preço (R$)"},"title":"3D Scatter Plot: Área, Cond e Preço por Elevador"},"hovermode":"closest","showlegend":false},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[86,88,74,68,67,58,60,68,50,63,57,60,66,63,45,67,57,57,49,77,51,49,55,55,45,75,48,31,52,51,60,35,78,44,62,31,50,30,48,33,45,47,52,48,53,45,49,30,33,44,56,56,41,52,32,39],"y":[996,530,630,700,508,640,460,530,380,453,450,370,458,803,360,740,370,360,800,486,320,615,450,360,350,550,527,352,505,420,720,345,690,240,399,350,80,300,480,350,250,300,350,280,390,362,190,370,330,170,100,140,150,218,235,103],"z":[800000,580000,545000,480000,460000,460000,460000,424000,380000,380000,379000,372960,368000,360000,351849,350000,349000,340000,340000,338000,332000,330000,327000,322000,295000,280000,280000,280000,280000,276000,270000,259800,250000,235000,230000,228000,225000,220000,220000,219990,219000,218000,215000,210000,200000,195000,190000,190000,185000,178000,170000,170000,165900,165000,160000,129000],"mode":"markers","marker":{"color":["blue","red","blue","blue","blue","red","blue","blue","red","blue","blue","red","blue","blue","blue","blue","blue","blue","blue","red","red","blue","red","red","red","red","blue","blue","blue","blue","blue","blue","blue","blue","blue","red","blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","red","red","blue","blue","blue","red","blue","blue","blue"],"size":5,"opacity":0.6,"line":{"color":"rgba(31,119,180,1)"}},"type":"scatter3d","error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"line":{"color":"rgba(31,119,180,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<script type="application/htmlwidget-sizing" data-for="htmlwidget-2df78e77c955685f28aa">{"viewer":{"width":"100%","height":400,"padding":0,"fill":true},"browser":{"width":"100%","height":400,"padding":0,"fill":true}}</script>
 </body>
 </html>

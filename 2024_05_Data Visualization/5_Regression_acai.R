@@ -26,6 +26,7 @@ summary(acai)
 acai2 <- acai |> select(vendas, temp, dia, chuva, fds, pag, 
                       insta, mes) |> filter(mes == c("ago", "set"))
 
+
 summary(acai2)
 
 #################################################################################
